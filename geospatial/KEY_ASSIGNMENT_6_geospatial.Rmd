@@ -34,15 +34,14 @@ library(tidyverse)
 library(sf)
 library(terra)
 library(tmap)
-library(rnaturalearth)
 ```
 
 Load the spatial objects we created in class:
 
 ```{r load-spatial-data}
-# Load China boundary data
-china_mainland <- ne_countries(country = "China", returnclass = "sf", scale = "medium")
-china_provinces <- ne_states(country = "China", returnclass = "sf")
+ Load China boundary data
+china <- st_read("data/china.shp")
+
 
 # Create cities dataset
 chinese_cities <- data.frame(
@@ -103,7 +102,7 @@ temp_hist_df <- as.data.frame(china_temp_hist, xy = TRUE)
 # Create map
 ggplot() +
   geom_raster(data = temp_hist_df, aes(x = x, y = y, fill = China_historic_temp)) + 
-  geom_sf(data = china_mainland, fill = NA, color = "black", size = 1) +
+  geom_sf(data = china, fill = NA, color = "black", size = 1) +
   scale_fill_distiller(name = "Temperature\n(°C)", palette = "RdYlBu") +
   labs(title = "China Historic Temperature (1970-2000)") +
   theme_minimal()
@@ -159,7 +158,7 @@ Create a map showing cities sized by their projected temperature change:
 ```{r cities-temperature-map}
 # Map cities sized by temperature change
 ggplot() +
-  geom_sf(data = china_mainland, fill = "lightgray", color = "black") +
+  geom_sf(data = china, fill = "lightgray", color = "black") +
   geom_sf(data = cities_temp, aes(size = temp_change), 
           color = "red", alpha = 0.7) +
   scale_size_continuous(name = "Temperature\nChange (°C)", 
@@ -185,10 +184,9 @@ Calculate the mean projected temperature change for each province using the `zon
 
 ```{r provincial-temperature-analysis}
 # Calculate zonal statistics for provinces
-provinces_temp <- china_provinces %>%
-  mutate(temp_change = terra::zonal(temp_change, vect(china_provinces), 
-                                   fun = "mean", na.rm = TRUE)$China_2050_temp) %>%
-  select(name, temp_change)
+provinces_temp <- china %>%
+  mutate(temp_change = terra::zonal(temp_change, vect(china), 
+                                   fun = "mean", na.rm = TRUE)$China_2050_temp)
 
 # View results
 print("Provincial temperature changes:")
@@ -234,7 +232,7 @@ Notes:
 precip_df <- st_drop_geometry(provinces_precip)
 temp_df <- st_drop_geometry(provinces_temp)
 
-joined_data <- left_join(precip_df, temp_df, by = "name")
+joined_data <- left_join(precip_df, temp_df)
 
 # create the scatter plot
 ggplot(joined_data) +

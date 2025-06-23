@@ -46,7 +46,6 @@ There are a couple new packages we need to install to work with geospatial data.
 
 -   `tmap` : visualizing spatial data (i.e., making maps!)
 
--   `rnaturalearth` : to retrieve global map data
 
 ## Install new packages: Only do this ONCE
 
@@ -54,7 +53,7 @@ There are a couple new packages we need to install to work with geospatial data.
 install.packages("sf")
 install.packages("terra")
 install.packages("tmap")
-install.packages("rnaturalearth")
+
 ```
 
 
@@ -65,7 +64,6 @@ library(tidyverse)      # For data manipulation
 library(sf)             # For vector data (Simple Features)
 library(terra)          # For raster data
 library(tmap)           # For interactive mapping
-library(rnaturalearth)  # For world map data
 
 ```
 
@@ -73,21 +71,10 @@ library(rnaturalearth)  # For world map data
 
 ## Part 2: Loading China Map Data
 
-### Get boundary for mainland China and provinces
+### Read in China spatial boundaries
 
 ```{r}
-# Method 1: Get mainland China boundary from Natural Earth data
-china_mainland <- ne_countries(country = "China", returnclass = "sf", scale = "medium")
-
-# Method 2: Get Mainland Chinese provinces (more detailed)
-china_provinces <- ne_states(country = "China", returnclass = "sf")
-
-# Look at the data structure
-print("China country data:")
-head(china_mainland)
-
-print("China provinces data:")
-head(china_provinces)
+china <- st_read("data/china.shp")
 ```
 
 ### Make a simple map
@@ -96,22 +83,10 @@ We can use `geom_sf()` to visualize spatial data.
 
 ```{r}
 # Basic map of China
-ggplot(china_mainland) +
+ggplot(china) +
   geom_sf(fill = "lightblue", color = "black") +
   labs(title = "Map of China") +
   theme_minimal()
-```
-
-### Map with provinces
-
-```{r}
-# Map showing all provinces
-ggplot(china_provinces) +
-  geom_sf(fill = "lightgreen", color = "white", size = 0.5) +
-  labs(title = "China Provinces") +
-  theme_minimal() +
-  theme(axis.text = element_blank(),  # Remove coordinate numbers
-        axis.ticks = element_blank())
 ```
 
 ---
@@ -181,7 +156,7 @@ Now let's add our city locations to our map of China:
 ```{r}
 # Map with cities marked
 ggplot() +
-  geom_sf(data = china_mainland, fill = "lightgray", color = "black") +
+  geom_sf(data = china, fill = "lightgray", color = "black") +
   geom_sf(data = cities_sf, color = "red", size = 3) +
   labs(title = "Major Chinese Cities") +
   theme_minimal()
@@ -194,7 +169,7 @@ Since we have estimated population data as a variable in our `cities_sf` object,
 ```{r}
 # Cities sized by population
 ggplot() +
-  geom_sf(data = china_mainland, fill = "lightgray", color = "black") +
+  geom_sf(data = china, fill = "lightgray", color = "black") +
   geom_sf(data = cities_sf, aes(size = population_millions), # size by population
           color = "red", alpha = 0.7) +
   scale_size_continuous(name = "Population\n(Millions)", # name the legend and edit the point size range
@@ -241,7 +216,7 @@ raster_df <- as.data.frame(china_precip_hist, xy = TRUE)
 # Plot raster with country boundary
 ggplot() +
   geom_raster(data = raster_df, aes(x = x, y = y, fill = China_historic_precip)) + 
-  geom_sf(data = china_mainland, fill = NA, color = "black", size = 1) +
+  geom_sf(data = china, fill = NA, color = "black", size = 1) +
   scale_fill_continuous(name = "Annual Precipitation\n(mm)") +
   labs(title = "China Historic Precipitation") +
   theme_minimal()
@@ -254,7 +229,7 @@ ggplot() +
 
 ### Raster Calculations
 
-Since we have two rasters for the same region, one showing future precipitation and one showing historic, we can use R to calculate the projected change in precipitation under climate change for Mainland China.
+Since we have two rasters for the same region, one showing future precipitation and one showing historic, we can use R to calculate the projected change in precipitation.
 
 This is surprisingly easy in R with raster math!
 
@@ -282,7 +257,7 @@ Extract temperature values at city locations using our`cities_sf` object created
 
 ```{r}
 # Extract raster values at city points
-extracted_precip <- extract(precip_change, cities_sf)
+extracted_precip <- terra::extract(precip_change, cities_sf)
 ```
 
 
@@ -298,7 +273,7 @@ Now, lets viusalize which cities are projected to have the highest change in pre
 ```{r}
 # Cities sized by change in precip
 ggplot() +
-  geom_sf(data = china_mainland, fill = "lightgray", color = "black") +
+  geom_sf(data = china, fill = "lightgray", color = "black") +
   geom_sf(data = cities_precip, aes(size = precip_change), # size by precip change
           color = "red", alpha = 0.7) +
   scale_size_continuous(name = "Projected Change\nin Precip (mm)", # name the legend and edit the point size range
@@ -309,7 +284,7 @@ ggplot() +
 
 ### Zonal statistics
 
-Finally, what if we want to know the projected change in precipitation for each of our provinces in mainland China? In this case, we cannot just extract a single value from a single point, but instead we need to summarize multiple values within an entire province. 
+Finally, what if we want to know the projected change in precipitation for each of our provinces? In this case, we cannot just extract a single value from a single point, but instead we need to summarize multiple values within an entire province. 
 
 To summarize a raster within specified regions (polygons) we use what are called zonal statistics. In R, we can run zonal statistics using the `zonal()` function from the terra package.
 
@@ -318,7 +293,7 @@ For this function, it also requires we change the format of our sf object above.
 We use the `fun = "mean"` argument to calculate the mean of all values within each province. We also need to add `na.rm = TRUE` so that it ignores any raster cells that may be NA (most likely water).
 
 ```{r}
-terra::zonal(precip_change, vect(china_provinces), fun = "mean", na.rm = TRUE)
+terra::zonal(precip_change, vect(china), fun = "mean", na.rm = TRUE)
 ```
 
 Similar to how we did this with the cities data, we can use `mutate()` to add these calculated means directly to our `china_provinces` spatial object as a new variable:
@@ -326,10 +301,8 @@ Similar to how we did this with the cities data, we can use `mutate()` to add th
 *Note*: Make sure the column name you use with `$` matches the name returned from the `zonal()` code we ran above.
 
 ```{r}
-provinces_precip <- china_provinces %>% 
-  mutate(precip_change = terra::zonal(precip_change, vect(china_provinces), fun = "mean", na.rm = TRUE)$China_2050_precip) %>% 
-  # select just the values we want
-  select(name, precip_change)
+provinces_precip <- china %>% 
+  mutate(precip_change = terra::zonal(precip_change, vect(china), fun = "mean", na.rm = TRUE)$China_2050_precip)
 ```
 
 Now we can make a map where provinces are colored by their projected change in precipitation.

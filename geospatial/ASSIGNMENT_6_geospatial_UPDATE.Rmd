@@ -34,15 +34,13 @@ library(tidyverse)
 library(sf)
 library(terra)
 library(tmap)
-library(rnaturalearth)
 ```
 
-Load the spatial objects we created in class:
+Load the spatial objects we used in class:
 
 ```{r load-spatial-data}
 # Load China boundary data
-china_mainland <- ne_countries(country = "China", returnclass = "sf", scale = "medium")
-china_provinces <- ne_states(country = "China", returnclass = "sf")
+china <- st_read("data/china.shp")
 
 # Create cities dataset
 chinese_cities <- data.frame(
@@ -87,7 +85,7 @@ china_temp_2050 <- rast("data/china_2050_temp.tiff")
 Create a map showing historic temperature across China. Your map should:
 - Convert the raster to a data frame for plotting
 - Use `geom_raster()` to display temperature values
-- Add the mainland China country boundary as an overlay
+- Add the China country boundary as an overlay
 - Include appropriate color scale and labels
 - Use `scale_fill_distiller()` and the "RdYlBu" palette to make the colors more appropriate for viewing temperature data.
 
@@ -133,7 +131,7 @@ Which cities are projected to experience the greatest temperature increases? Lis
 
 ## Question 4: Provincial Temperature Analysis (5 points)
 
-Calculate the mean projected temperature change for each province using the `zonal()` function. Add the values as a new column to your china_provices data.
+Calculate the mean projected temperature change for each province using the `zonal()` function. Add the values as a new column to your china boundary data.
 
 ```{r}
 # YOUR CODE HERE
