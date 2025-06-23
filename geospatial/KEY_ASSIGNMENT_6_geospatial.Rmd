@@ -39,7 +39,7 @@ library(tmap)
 Load the spatial objects we created in class:
 
 ```{r load-spatial-data}
- Load China boundary data
+# Load China boundary data
 china <- st_read("data/china.shp")
 
 
