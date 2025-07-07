@@ -1,0 +1,48 @@
+---
+title: "Pika map"
+author: "Caitlin Mothes, PhD"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(sf)
+library(tmap)
+library(tidyverse)
+```
+
+
+Read in the Pika locations
+```{r}
+pikas <- read_csv("data/pika.csv")
+```
+
+Make the data spatial
+```{r}
+pikas_sf <- st_as_sf(pikas, coords = c("longitude", "latitude"), crs = 4326)
+```
+
+Static map
+```{r}
+# Map with cities marked
+ggplot() +
+  geom_sf(data = pikas_sf, color = "red", size = 3) +
+  labs(title = "Pikas in Rocky Mountain National Park") +
+  theme_minimal()
+```
+
+Interactive map
+```{r}
+tmap_mode("view")
+```
+
+```{r}
+tm_shape(pikas_sf) +
+  tm_symbols(col = "red", size = 4, alpha = 0.5)
+```
+

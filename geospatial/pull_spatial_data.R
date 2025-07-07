@@ -7,7 +7,11 @@ library(rnaturalearth)
 
 
 #China boundary
-china_country <- ne_countries(country = "China", returnclass = "sf", scale = "medium")
+china <- st_read("geospatial/data_update/china.shp") %>% 
+  select(AREA, FENAME, FCNAME)
+
+# save with new selected column names
+st_write(china, "geospatial/data_update/china.shp", append = FALSE)
 
 # Worldclim Data ----------------
 
@@ -18,7 +22,7 @@ china_country <- ne_countries(country = "China", returnclass = "sf", scale = "me
 dir <- tempdir()
 
 # Unzip the file
-unzip("geospatial/data/wc2.1_2.5m_tavg.zip", exdir = dir)
+unzip("geospatial/data_update/wc2.1_2.5m_tavg.zip", exdir = dir)
 
 # Find and read raster files
 raster_files <- list.files(dir, pattern = "\\.tif$", 
@@ -28,7 +32,7 @@ rasters <- terra::rast(raster_files)
 
 # clip to china and average
 china_temp_hist <- rasters %>% 
-  terra::crop(vect(st_transform(china_country, crs(rasters))), mask = TRUE) %>% 
+  terra::crop(vect(st_transform(china, crs(rasters))), mask = TRUE) %>% 
   terra::mean(na.rm = TRUE)
 
 
@@ -38,7 +42,7 @@ tm_shape(china_temp_hist) +
 names(china_temp_hist) <- "China_historic_temp"
 
 # save
-writeRaster(china_temp_hist, "geospatial/data/china_historic_temp.tiff", overwrite = TRUE)
+writeRaster(china_temp_hist, "geospatial/data_update/china_historic_temp.tiff", overwrite = TRUE)
 
 unlink(dir, recursive = TRUE)
 
@@ -47,7 +51,7 @@ unlink(dir, recursive = TRUE)
 dir <- tempdir()
 
 # Unzip the file
-unzip("geospatial/data/wc2.1_2.5m_prec.zip", exdir = dir)
+unzip("geospatial/data_update/wc2.1_2.5m_prec.zip", exdir = dir)
 
 # Find and read raster files
 raster_files <- list.files(dir, pattern = "\\.tif$", 
@@ -57,7 +61,7 @@ rasters <- terra::rast(raster_files)
 
 # clip to china and average
 china_precip_hist <- rasters %>% 
-  terra::crop(vect(st_transform(china_country, crs(rasters))), mask = TRUE) %>% 
+  terra::crop(vect(st_transform(china, crs(rasters))), mask = TRUE) %>% 
   sum(na.rm = TRUE)
 
 
@@ -67,7 +71,7 @@ tm_shape(china_precip_hist) +
 names(china_precip_hist) <- "China_historic_precip"
 
 # save
-writeRaster(china_precip_hist, "geospatial/data/china_historic_precip.tiff", overwrite = TRUE)
+writeRaster(china_precip_hist, "geospatial/data_update/china_historic_precip.tiff", overwrite = TRUE)
 
 unlink(dir, recursive = TRUE)
 
@@ -75,13 +79,13 @@ unlink(dir, recursive = TRUE)
 # FUTURE -------------------------------
 
 ### 2050 -----------------------------
-bioclim_2050 <- terra::rast("geospatial/data/wc2.1_2.5m_bioc_BCC-CSM2-MR_ssp585_2041-2060.tif")
+bioclim_2050 <- terra::rast("geospatial/data_update/wc2.1_2.5m_bioc_BCC-CSM2-MR_ssp585_2041-2060.tif")
 
 # clip to china
 
 #mean temp
 temp_2050 <- bioclim_2050[[1]] %>% 
-  terra::crop(vect(st_transform(china_country, crs(bioclim_2050))), mask = TRUE) 
+  terra::crop(vect(st_transform(china, crs(bioclim_2050))), mask = TRUE) 
   
 tm_shape(temp_2050) +
   tm_raster(palette = "viridis", style = "cont")
@@ -91,13 +95,13 @@ names(temp_2050) <- "China_2050_temp"
 
 
 # save
-writeRaster(temp_2050, "geospatial/data/china_2050_temp.tiff", overwrite = TRUE)
+writeRaster(temp_2050, "geospatial/data_update/china_2050_temp.tiff", overwrite = TRUE)
 
 
 
 #annual precip
 precip_2050 <- bioclim_2050[[12]] %>% 
-  terra::crop(vect(st_transform(china_country, crs(bioclim_2050))), mask = TRUE) 
+  terra::crop(vect(st_transform(china, crs(bioclim_2050))), mask = TRUE) 
 
 tm_shape(precip_2050) +
   tm_raster(palette = "viridis", style = "cont")
@@ -105,7 +109,7 @@ tm_shape(precip_2050) +
 names(precip_2050) <- "China_2050_precip"
 
 # save
-writeRaster(precip_2050, "geospatial/data/china_2050_precip.tiff", overwrite = TRUE)
+writeRaster(precip_2050, "geospatial/data_update/china_2050_precip.tiff", overwrite = TRUE)
 
 
 ## 2090
