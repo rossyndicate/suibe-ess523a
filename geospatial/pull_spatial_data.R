@@ -1,156 +1,111 @@
 # Code to pull data for geospatial assignment
+# Region: Colorado, USA
+# Sub-national unit: Colorado counties
 
 library(terra)
 library(sf)
 library(tidyverse)
 library(rnaturalearth)
+library(rnaturalearthdata)
+library(mapview)
+library(tigris)
 
 
-#China boundary
-china <- st_read("geospatial/data_update/china.shp") %>% 
-  select(AREA, FENAME, FCNAME)
+# Colorado county boundaries --------------------------------------------------
+# Pull US states, filter to Colorado, then get counties
 
-# save with new selected column names
-st_write(china, "geospatial/data_update/china.shp", append = FALSE)
+colorado <- rnaturalearth::ne_states(country = "United States of America", returnclass = "sf") %>%
+  filter(name == "Colorado") %>%
+  select(name, region, geometry)
 
-# Worldclim Data ----------------
+# Pull county-level data for Colorado
+co_counties <- tigris::counties(state = "CO", cb = TRUE, class = "sf") %>%
+  select(NAME, geometry)
+
+# US states for background context
+us_states <- rnaturalearth::ne_states(country = "United States of America", returnclass = "sf") %>% 
+  # keep just conus
+  filter(!name %in% c("Alaska", "Hawaii"))
+
+# Save boundaries
+st_write(colorado, "geospatial/data/colorado.shp", append = FALSE)
+st_write(co_counties, "geospatial/data/co_counties.shp", append = FALSE)
+st_write(us_states, "geospatial/data/us_states.shp", append = FALSE)
 
 
-# historic --------------------
+# WorldClim Data --------------------------------------------------------------
 
-## Temp -----------------
+# Historic --------------------
+
+## Temperature -----------------
 dir <- tempdir()
 
-# Unzip the file
-unzip("geospatial/data_update/wc2.1_2.5m_tavg.zip", exdir = dir)
+# Unzip the file (download wc2.1_2.5m_tavg.zip from https://worldclim.org/data/worldclim21.html)
+unzip("geospatial/data/wc2.1_2.5m_tavg.zip", exdir = dir)
 
 # Find and read raster files
-raster_files <- list.files(dir, pattern = "\\.tif$", 
+raster_files <- list.files(dir, pattern = "\\.tif$",
                            full.names = TRUE, recursive = TRUE)
 
 rasters <- terra::rast(raster_files)
 
-# clip to china and average
-china_temp_hist <- rasters %>% 
-  terra::crop(vect(st_transform(china, crs(rasters))), mask = TRUE) %>% 
+# Clip to Colorado and calculate mean annual temperature
+co_temp_hist <- rasters %>%
+  terra::crop(vect(st_transform(colorado, crs(rasters))), mask = TRUE) %>%
   terra::mean(na.rm = TRUE)
 
+names(co_temp_hist) <- "CO_historic_temp"
 
-tm_shape(china_temp_hist) +
-  tm_raster(palette = "viridis", style = "cont")
-
-names(china_temp_hist) <- "China_historic_temp"
-
-# save
-writeRaster(china_temp_hist, "geospatial/data_update/china_historic_temp.tiff", overwrite = TRUE)
+# Save
+writeRaster(co_temp_hist, "geospatial/data/co_historic_temp.tiff", overwrite = TRUE)
 
 unlink(dir, recursive = TRUE)
 
-## Precip ---------------------------
 
+## Precipitation ---------------
 dir <- tempdir()
 
-# Unzip the file
-unzip("geospatial/data_update/wc2.1_2.5m_prec.zip", exdir = dir)
+# Unzip the file (download wc2.1_2.5m_prec.zip from https://worldclim.org/data/worldclim21.html)
+unzip("geospatial/data/wc2.1_2.5m_prec.zip", exdir = dir)
 
 # Find and read raster files
-raster_files <- list.files(dir, pattern = "\\.tif$", 
+raster_files <- list.files(dir, pattern = "\\.tif$",
                            full.names = TRUE, recursive = TRUE)
 
 rasters <- terra::rast(raster_files)
 
-# clip to china and average
-china_precip_hist <- rasters %>% 
-  terra::crop(vect(st_transform(china, crs(rasters))), mask = TRUE) %>% 
+# Clip to Colorado and calculate total annual precipitation
+co_precip_hist <- rasters %>%
+  terra::crop(vect(st_transform(colorado, crs(rasters))), mask = TRUE) %>%
   sum(na.rm = TRUE)
 
+names(co_precip_hist) <- "CO_historic_precip"
 
-tm_shape(china_precip_hist) +
-  tm_raster(palette = "viridis", style = "cont")
-
-names(china_precip_hist) <- "China_historic_precip"
-
-# save
-writeRaster(china_precip_hist, "geospatial/data_update/china_historic_precip.tiff", overwrite = TRUE)
+# Save
+writeRaster(co_precip_hist, "geospatial/data/co_historic_precip.tiff", overwrite = TRUE)
 
 unlink(dir, recursive = TRUE)
 
 
-# FUTURE -------------------------------
+# Future (2050) ---------------------------------------------------------------
+# Download wc2.1_2.5m_bioc_BCC-CSM2-MR_ssp585_2041-2060.tif from:
+# https://worldclim.org/data/cmip6/cmip6_clim2.5m.html
 
-### 2050 -----------------------------
-bioclim_2050 <- terra::rast("geospatial/data_update/wc2.1_2.5m_bioc_BCC-CSM2-MR_ssp585_2041-2060.tif")
+bioclim_2050 <- terra::rast("geospatial/data/wc2.1_2.5m_bioc_BCC-CSM2-MR_ssp585_2041-2060.tif")
 
-# clip to china
+# Mean annual temperature (BIO1 = layer 1)
+temp_2050 <- bioclim_2050[[1]] %>%
+  terra::crop(vect(st_transform(colorado, crs(bioclim_2050))), mask = TRUE)
 
-#mean temp
-temp_2050 <- bioclim_2050[[1]] %>% 
-  terra::crop(vect(st_transform(china, crs(bioclim_2050))), mask = TRUE) 
-  
-tm_shape(temp_2050) +
-  tm_raster(palette = "viridis", style = "cont")
+names(temp_2050) <- "CO_2050_temp"
 
-
-names(temp_2050) <- "China_2050_temp"
+writeRaster(temp_2050, "geospatial/data/co_2050_temp.tiff", overwrite = TRUE)
 
 
-# save
-writeRaster(temp_2050, "geospatial/data_update/china_2050_temp.tiff", overwrite = TRUE)
+# Annual precipitation (BIO12 = layer 12)
+precip_2050 <- bioclim_2050[[12]] %>%
+  terra::crop(vect(st_transform(colorado, crs(bioclim_2050))), mask = TRUE)
 
+names(precip_2050) <- "CO_2050_precip"
 
-
-#annual precip
-precip_2050 <- bioclim_2050[[12]] %>% 
-  terra::crop(vect(st_transform(china, crs(bioclim_2050))), mask = TRUE) 
-
-tm_shape(precip_2050) +
-  tm_raster(palette = "viridis", style = "cont")
-
-names(precip_2050) <- "China_2050_precip"
-
-# save
-writeRaster(precip_2050, "geospatial/data_update/china_2050_precip.tiff", overwrite = TRUE)
-
-
-## 2090
-
-### 2090 -----------------------------
-bioclim_2090 <- terra::rast("geospatial/data/wc2.1_2.5m_bioc_BCC-CSM2-MR_ssp585_2081-2100.tif")
-
-# clip to china
-
-#mean temp
-temp_2090 <- bioclim_2090[[1]] %>% 
-  terra::crop(vect(st_transform(china_country, crs(bioclim_2090))), mask = TRUE) 
-
-tm_shape(temp_2090) +
-  tm_raster(palette = "viridis", style = "cont")
-
-names(temp_2090) <- "China_2090_temp"
-
-# save
-writeRaster(temp_2090, "geospatial/data/china_2090_temp.tiff", overwrite = TRUE)
-
-
-
-#annual precip
-precip_2090 <- bioclim_2090[[12]] %>% 
-  terra::crop(vect(st_transform(china_country, crs(bioclim_2090))), mask = TRUE) 
-
-tm_shape(precip_2090) +
-  tm_raster(palette = "viridis", style = "cont")
-
-names(precip_2090) <- "China_2090_precip"
-
-# save
-writeRaster(precip_2090, "geospatial/data/china_2090_precip.tiff", overwrite = TRUE)
-
-
-
-# Change calculations ----------------
-
-temp_hist <- rast("geospatial/data/china_historic_temp.tiff")
-temp_205
-
-test <- temp_2090 - temp_hist
-
+writeRaster(precip_2050, "geospatial/data/co_2050_precip.tiff", overwrite = TRUE)

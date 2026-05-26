@@ -69,14 +69,15 @@ cities_sf <- st_as_sf(colorado_cities,
 
 ---
 
-## Load Temperature Raster Data
+## Load Temperature Raster Data 
 
-Load both temperature raster files using the `rast()` function:
+Load both temperature raster files using the `rast()` function that will be needed to complete this assignment. Adjust file paths if needed!
 
-```{r load-temperature-data}
+```{r}
 # Load temperature raster data
 co_temp_hist <- rast("data/co_historic_temp.tiff")
 co_temp_2050 <- rast("data/co_2050_temp.tiff")
+
 ```
 
 ---
@@ -94,19 +95,6 @@ Create a map showing historic temperature across Colorado. Your map should:
 # YOUR CODE HERE
 ```
 
-```{r historic-temperature-map}
-# Convert raster to data frame for ggplot
-temp_hist_df <- as.data.frame(co_temp_hist, xy = TRUE)
-
-# Create map
-ggplot() +
-  geom_raster(data = temp_hist_df, aes(x = x, y = y, fill = CO_historic_temp)) + 
-  geom_sf(data = colorado, fill = NA, color = "black", size = 1) +
-  scale_fill_distiller(name = "Temperature\n(°C)", palette = "RdYlBu") +
-  labs(title = "Colorado Historic Temperature (1970-2000)") +
-  theme_minimal()
-```
-
 
 ---
 
@@ -116,14 +104,6 @@ Calculate the projected change in temperature between 2050 and historic. Call th
 
 ```{r}
 # YOUR CODE HERE
-```
-
-```{r calculate-temperature-change}
-# Calculate temperature change
-temp_change <- co_temp_2050 - co_temp_hist
-
-# Create basic plot
-plot(temp_change, main = "Projected Temperature Change (2050 - Historic)")
 ```
 
 ---
@@ -136,15 +116,6 @@ Extract the projected temperature change values for all major Colorado cities us
 # YOUR CODE HERE
 ```
 
-```{r extract-city-temperatures}
-# Extract temperature change values for cities
-cities_temp <- cities_sf %>%
-  mutate(temp_change = terra::extract(temp_change, cities_sf)$CO_2050_temp)
-
-# View the results
-print("Cities with temperature change data:")
-cities_temp
-```
 
 Create a map showing cities sized by their projected temperature change:
 
@@ -152,22 +123,11 @@ Create a map showing cities sized by their projected temperature change:
 # YOUR CODE HERE
 ```
 
-```{r cities-temperature-map}
-# Map cities sized by temperature change
-ggplot() +
-  geom_sf(data = colorado, fill = "lightgray", color = "black") +
-  geom_sf(data = cities_temp, aes(size = temp_change), 
-          color = "red", alpha = 0.5) +
-  scale_size_continuous(name = "Temperature\nChange (°C)", 
-                       range = c(2, 8)) + 
-  labs(title = "Colorado Cities: Projected Temperature Change (2050)") +
-  theme_minimal()
-```
+
 
 Which cities are projected to experience the greatest temperature increases? List the top 3 and their approximate temperature changes.
 
 *Your answer here:*
-Denver (3.24), Colorado Springs (3.13), Auroroa (3.18)
 
 ---
 
@@ -179,16 +139,7 @@ Calculate the mean projected temperature change for each county using the `zonal
 # YOUR CODE HERE
 ```
 
-```{r county-temperature-analysis}
-# Calculate zonal statistics for counties
-counties_temp <- co_counties %>%
-  mutate(temp_change = terra::zonal(temp_change, vect(co_counties), 
-                                   fun = "mean", na.rm = TRUE)$CO_2050_temp)
 
-# View results
-print("County temperature changes:")
-head(counties_temp)
-```
 
 Create a map showing counties colored by their projected temperature change:
 
@@ -196,14 +147,7 @@ Create a map showing counties colored by their projected temperature change:
 # YOUR CODE HERE
 ```
 
-```{r county-temperature-map}
-# Map counties by temperature change
-ggplot(counties_temp) +
-  geom_sf(aes(fill = temp_change), color = "white", size = 0.5) +
-  scale_fill_viridis_c(name = "Temperature\nChange (°C)") +
-  labs(title = "Projected Temperature Change by County (2050)") +
-  theme_minimal()
-```
+
 
 Which counties are projected to warm the most and least? Do you notice any geographic patterns (e.g., eastern plains vs. mountains vs. western slope)?
 
@@ -224,20 +168,5 @@ Notes:
 
 ```
 
-```{r bonus-solution}
-precip_df <- st_drop_geometry(counties_precip)
-temp_df <- st_drop_geometry(counties_temp)
 
-joined_data <- left_join(precip_df, temp_df, by = "NAME")
-
-# Create the scatter plot
-ggplot(joined_data) +
-  geom_point(aes(x = temp_change, y = precip_change)) +
-  geom_smooth(aes(x = temp_change, y = precip_change), method = "lm", se = TRUE) +
-  labs(
-    title = "Projected Change in Temperature vs. Precipitation by County (2050)",
-    x = "Temperature Change (°C)",
-    y = "Precipitation Change (mm)"
-  ) +
-  theme_minimal()
-```
+---
