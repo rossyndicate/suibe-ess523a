@@ -172,7 +172,7 @@ Now let's add our city locations to our map of Colorado:
 
 ```{r}
 ggplot() +
-  geom_sf(data = us_states, fill = "white", color = "gray70") +
+  geom_sf(data = usa, fill = "white", color = "gray70") +
   geom_sf(data = colorado, fill = "lightgray", color = "black") +
   geom_sf(data = cities_sf, color = "red", size = 3) +
   labs(title = "Major Colorado Cities") +
@@ -358,13 +358,13 @@ The most fun part of maps is being able to interact with them. To do so in R, we
 
 ### Map a raster
 
-```{r}
+```{r, eval = FALSE}
 mapview(precip_change)
 ```
 
 ### Map a vector layer
 
-```{r}
+```{r, eval = FALSE}
 mapview(cities_precip, zcol = "precip_change")
 ```
 
@@ -374,7 +374,7 @@ The `zcol = ` argument tells `mapview` which column to use for coloring the poin
 
 You can layer multiple spatial objects using `+`, just like ggplot:
 
-```{r}
+```{r, eval = FALSE}
 mapview(precip_change) +
   mapview(cities_precip, zcol = "precip_change")
 ```
