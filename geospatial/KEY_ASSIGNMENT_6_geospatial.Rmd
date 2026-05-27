@@ -167,7 +167,7 @@ ggplot() +
 Which cities are projected to experience the greatest temperature increases? List the top 3 and their approximate temperature changes.
 
 *Your answer here:*
-Denver (3.24), Colorado Springs (3.13), Auroroa (3.18)
+Denver (3.24), Colorado Springs (3.13), Aurora (3.18)
 
 ---
 
