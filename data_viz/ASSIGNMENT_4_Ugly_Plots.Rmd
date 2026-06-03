@@ -4,6 +4,9 @@ output: pdf_document
 
 # The Assignment: The Ugly Plot Challenge
 
+## Due Date: Wednesday June 10th
+This is a unique assignment, as we need you to submit this one earlier than the others in order for the class to vote on their favorites. We will vote on the plots in class on Thursday June 11. *All plots will be anonymous when voting.*
+
 The assignment is to use everything you've learned in the *04-data_viz.pdf* lesson and additional resources to make an "Ugly Plot". By "Ugly Plot" we mean using the data visualization tools and resources you've learned to make a creatively "ugly" (often funny) plot. For example, use bright colors, change the axes to make no sense, add text or images where they shouldn't be. *This assignment will challenge you to add customization to your basic ggplots.* Be as creative as you want!
 
 You can create these plots with any data (e.g., the dataset from today, the penguins or bison data, or new ones). The plot just has to be something we have not made in class before.
