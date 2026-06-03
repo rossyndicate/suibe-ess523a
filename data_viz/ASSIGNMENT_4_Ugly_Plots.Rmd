@@ -1,0 +1,38 @@
+---
+output: pdf_document
+---
+
+# The Assignment: The Ugly Plot Challenge
+
+The assignment is to use everything you've learned in the *04-data_viz.pdf* lesson and additional resources to make an "Ugly Plot". By "Ugly Plot" we mean using the data visualization tools and resources you've learned to make a creatively "ugly" (often funny) plot. For example, use bright colors, change the axes to make no sense, add text or images where they shouldn't be. *This assignment will challenge you to add customization to your basic ggplots.* Be as creative as you want!
+
+You can create these plots with any data (e.g., the dataset from today, the penguins or bison data, or new ones). The plot just has to be something we have not made in class before.
+
+### To submit the assignment, save this file with your name added to it, and complete the necessary steps below to load in your data and write your code to create your plot. This assignment requires one new additional step: you must also Export your plot as a .png or jpeg and submit that with your assignment as well.
+
+#### Extra Credit: 
+The class will vote on the best ugly plot and the winners will receive extra credit! First place will receive 5 points, second place 3 points and third place 1 point of extra credit.
+
+
+## Assignment Code
+
+Load in your packages:
+```{r}
+library(tidyverse)
+# Add any other packages you need here
+
+```
+
+Load in your data:
+```{r}
+# YOUR CODE to load in your data you will plot
+
+```
+
+
+Ugly Plot Code:
+```{r}
+# All the ggplot code needed to create your ugly plot
+
+```
+
