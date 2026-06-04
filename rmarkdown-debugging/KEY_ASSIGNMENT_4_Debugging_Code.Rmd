@@ -38,7 +38,7 @@ This exploratory workflow uses the `atlantic_storms.csv` file in the data folder
 We read in the data and initially explore its structure:
 
 ```{r}
-storms <- read_csv("rmarkdown-debugging/data/atlantic_storms.csv")
+storms <- read_csv("data/atlantic_storms.csv")
 summary(storms)
 ```
 
