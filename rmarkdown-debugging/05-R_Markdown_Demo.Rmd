@@ -172,7 +172,8 @@ text.
 # Section 10: Rmarkdown Themes
 
 Add the “theme” option to the YAML header, followed by the name of the
-theme you want to use. For example:
+theme you want to use. This only works this easily when rendering to html.
+For example:
 
 ``` r
 output:
@@ -184,6 +185,17 @@ You can choose from a variety of built-in themes in R Markdown,
 including “default”, “cerulean”, “cosmo”, “flatly”, “journal”, “lumen”,
 “paper”, “readable”, “sandstone”, “simplex”, “spacelab”, “united”, and
 “yeti”.
+
+You can also customize how the table of contents works:
+
+``` r
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+    theme: flatly
+```
 
 # Section 11: Icons
 
