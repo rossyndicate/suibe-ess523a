@@ -95,7 +95,7 @@ visually after it is knitted and created.
 
 # Section 5: Images
 
-![This is Caitlin’s dog, Kona](pics/kona.png)
+![This is a cat living on the Great Wall of China!](data/cat.jpeg)
 
 # Section 6: Code
 
