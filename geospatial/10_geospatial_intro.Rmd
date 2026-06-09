@@ -2,6 +2,9 @@
 title: "Introduction to Geospatial Data Analysis in R"
 subtitle: "Working with Colorado Climate and Geographic Data"
 output: pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -11,40 +14,48 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 # Learning Goals
 
 By the end of this lesson, you will be able to:
-1. Load and view maps of Colorado
-2. Work with climate data (temperature, rainfall)
-3. Extract data for major Colorado cities
-4. Create simple maps with colors showing data
-5. Understand basic geospatial concepts
 
----
+1.  Load and view maps of Colorado
 
-## Part 1: What is Geospatial Data?
+2.  Work with climate data (temperature, rainfall)
 
-**Geospatial data** = Data that has location information (latitude, longitude)
+3.  Extract data for major Colorado cities
 
-**Examples**:
-- City locations (Denver: 39.7°N, 104.9°W)
-- Weather data across Colorado
-- Population by county
-- Elevation across the Rocky Mountains
+4.  Create simple maps with colors showing data
+
+5.  Understand basic geospatial concepts
+
+------------------------------------------------------------------------
+
+# Part 1: What is Geospatial Data?
+
+**Geospatial data** = Data that has location information (latitude,
+longitude)
+
+**Examples**: - City locations (Denver: 39.7°N, 104.9°W) - Weather data
+across Colorado - Population by county - Elevation across the Rocky
+Mountains
 
 **Two main types**:
-1. **Vector data**: Points, lines, polygons (cities, roads, county boundaries)
-2. **Raster data**: Grid of pixels with values (temperature, rainfall maps)
 
----
+1.  **Vector data**: Points, lines, polygons (cities, roads, county
+    boundaries)
+
+2.  **Raster data**: Grid of pixels with values (temperature, rainfall
+    maps)
+
+------------------------------------------------------------------------
 
 # Setup
 
-There are a couple new packages we need to install to work with geospatial data. These are:
+There are a couple new packages we need to install to work with
+geospatial data. These are:
 
--   `sf` : working with vector data
+- `sf` : working with vector data
 
--   `terra` : working with raster data
+- `terra` : working with raster data
 
--   `tmap` : visualizing spatial data (i.e., making maps!)
-
+- `mapview` : visualizing spatial data (i.e., making maps!)
 
 ## Install new packages: Only do this ONCE
 
@@ -52,23 +63,22 @@ There are a couple new packages we need to install to work with geospatial data.
 install.packages("sf")
 install.packages("terra")
 install.packages("mapview")
-
 ```
 
-
 ## Load in ALL packages for today's lesson:
+
 ```{r}
 # Install required packages
 library(tidyverse)      # For data manipulation
 library(sf)             # For vector data (Simple Features)
 library(terra)          # For raster data
-library(mapview)           # For interactive mapping
+library(mapview)        # For interactive mapping
 
 ```
 
----
+------------------------------------------------------------------------
 
-## Part 2: Loading Colorado Map Data
+# Part 2: Loading Colorado Map Data
 
 ### Read in Continental United States boundaries
 
@@ -106,9 +116,9 @@ ggplot(usa) +
   theme_minimal()
 ```
 
----
+------------------------------------------------------------------------
 
-## Part 3: Working with Colorado Cities
+# Part 3: Working with Colorado Cities
 
 ### Create dataset of major Colorado cities
 
@@ -133,13 +143,20 @@ colorado_cities <- data.frame(
 
 ## Creating spatial data
 
-The object we just created above called `colorado_cities` is currently a data frame. In order to visualize and analyze the spatial dataset we need to first convert it to a *spatial* object. When working with the `sf` package these are called *sf* objects.
+The object we just created above called `colorado_cities` is currently a
+data frame. In order to visualize and analyze the spatial dataset we
+need to first convert it to a *spatial* object. When working with the
+`sf` package these are called *sf* objects.
 
 ### `st_as_sf()`
 
-We use the `st_as_sf()` to convert a data frame to a spatial *sf* object. There are two main arguments we need to specify in this function:
-- `coords = `: this specifies which columns in our data frame represent the longitude and latitude. IMPORTANT: When writing this argument the column names must always specify *Longitude first* and *Latitude second*.
-- ` crs = `: this specifies the Coordinate Reference System (CRS) of the data. We will learn more about that later.
+We use the `st_as_sf()` to convert a data frame to a spatial *sf*
+object. There are two main arguments we need to specify in this
+function: - `coords =`: this specifies which columns in our data frame
+represent the longitude and latitude. IMPORTANT: When writing this
+argument the column names must always specify *Longitude first* and
+*Latitude second*. - `crs =`: this specifies the Coordinate Reference
+System (CRS) of the data. We will learn more about that later.
 
 ```{r}
 # Convert to spatial data
@@ -151,20 +168,35 @@ cities_sf <- st_as_sf(colorado_cities,
 cities_sf
 ```
 
-Note the 4-digit number we assign for `crs`. This is an EPSG code, which is tied to a specific CRS called WGS84 and one of the most common reference systems coordinates are recorded in (often noted by the fact that the values are in decimal degrees). This is used by Google Earth and all GPS satellites (among others). A full list of EPSG codes and coordinate reference systems can be found [here](https://spatialreference.org/ref/epsg/). Note, there are A LOT.
+Note the 4-digit number we assign for `crs`. This is an EPSG code, which
+is tied to a specific CRS called WGS84 and one of the most common
+reference systems coordinates are recorded in (often noted by the fact
+that the values are in decimal degrees). This is used by Google Earth
+and all GPS satellites (among others). A full list of EPSG codes and
+coordinate reference systems can be found
+[here](https://spatialreference.org/ref/epsg/). Note, there are A LOT.
 
 ### Note on Coordinate Reference Systems
 
-One of the most important part of working with spatial data is the coordinate reference system (CRS) that is used. The CRS describes how and where your spatial data is located on Earth. There are numerous different CRS's depending on when and how the data was collected, the spatial location and extent it was collected, etc. In order to analyze and visualize spatial data, **all objects must be in the exact same CRS**.
+One of the most important part of working with spatial data is the
+coordinate reference system (CRS) that is used. The CRS describes how
+and where your spatial data is located on Earth. There are numerous
+different CRS's depending on when and how the data was collected, the
+spatial location and extent it was collected, etc. In order to analyze
+and visualize spatial data, **all objects must be in the exact same
+CRS**.
 
-We can check a spatial object's CRS by printing the object name to the console, which will return a bunch of metadata about the object. You can specifically return the CRS for `sf` objects with `st_crs()`.
+We can check a spatial object's CRS by printing the object name to the
+console, which will return a bunch of metadata about the object. You can
+specifically return the CRS for `sf` objects with `st_crs()`.
 
 ```{r}
 st_crs(cities_sf)
 ```
 
-We won't spend too much time with the concept of CRS in this class, but it is very important to know if you plan on working with spatial data in the future.
-
+We won't spend too much time with the concept of CRS in this class, but
+it is very important to know if you plan on working with spatial data in
+the future.
 
 ### Map cities on Colorado
 
@@ -179,7 +211,9 @@ ggplot() +
   theme_minimal()
 ```
 
-That's hard to see at this zoom level. Now that we know where in the US Colorado is, let's zoom in and just map Colorado:
+That's hard to see at this zoom level. Now that we know where in the US
+Colorado is, let's zoom in and just map Colorado:
+
 ```{r}
 ggplot() +
   geom_sf(data = colorado, fill = "lightgray", color = "black") +
@@ -190,7 +224,8 @@ ggplot() +
 
 ### Map with city sizes based on population
 
-Since we have estimated population data as a variable in our `cities_sf` object, we can size the locations by their population:
+Since we have estimated population data as a variable in our `cities_sf`
+object, we can size the locations by their population:
 
 ```{r}
 # Cities sized by population
@@ -204,13 +239,15 @@ ggplot() +
   theme_minimal()
 ```
 
----
+------------------------------------------------------------------------
 
-## Part 4: Working with Raster Data
+# Part 4: Working with Raster Data
 
 ### Colorado climate data
 
-You have two rasters we have created for you to explore in this lesson. Raster file types often have *.tiff* as the file extension, and we can read them in to R using the `rast()` function from the `terra` package.
+You have two rasters we have created for you to explore in this lesson.
+Raster file types often have *.tiff* as the file extension, and we can
+read them in to R using the `rast()` function from the `terra` package.
 
 ```{r}
 # Read in precipitation data
@@ -225,15 +262,23 @@ co_precip_2050 <- rast("data/co_2050_precip.tiff")
 
 ```
 
-These two datasets were retrieved from the WorldClim database: https://www.worldclim.org/. 
-- co_historic_precip.tiff : this represents mean annual precipitation from 1970-2000 (mm)
-- co_2050_precip.tiff : this represents projected mean annual precipitation for 2041-2060.
+These two datasets were retrieved from the WorldClim database:
+<https://www.worldclim.org/>. - co_historic_precip.tiff : this
+represents mean annual precipitation from 1970-2000 (mm) -
+co_2050_precip.tiff : this represents projected mean annual
+precipitation for 2041-2060.
 
-The future dataset represents projected precipitation data for the worst-case scenario SSP5 (Shared Socio-Economic Pathways) from the BCC-CSM2-MR global climate model.
+The future dataset represents projected precipitation data for the
+worst-case scenario SSP5 (Shared Socio-Economic Pathways) from the
+BCC-CSM2-MR global climate model.
 
 ### Plot the raster data
 
-To plot a raster in `ggplot()` you have to first convert it to a data frame with the `as.data.frame()` function. Then, use the name of the third column in that new data frame (here it should be CO_historic_precip) to assign the `fill = ` argument below. Remember tidyverse does not like quotes (\" \") around column names.
+To plot a raster in `ggplot()` you have to first convert it to a data
+frame with the `as.data.frame()` function. Then, use the name of the
+third column in that new data frame (here it should be
+CO_historic_precip) to assign the `fill =` argument below. Remember
+tidyverse does not like quotes (" ") around column names.
 
 ```{r}
 # Convert raster to data frame for ggplot
@@ -248,14 +293,15 @@ ggplot() +
   theme_minimal()
 ```
 
+------------------------------------------------------------------------
 
----
-
-## Part 5: Geospatial Analysis
+# Part 5: Geospatial Analysis
 
 ### Raster Calculations
 
-Since we have two rasters for the same region, one showing future precipitation and one showing historic, we can use R to calculate the projected change in precipitation.
+Since we have two rasters for the same region, one showing future
+precipitation and one showing historic, we can use R to calculate the
+projected change in precipitation.
 
 This is surprisingly easy in R with raster math!
 
@@ -265,37 +311,44 @@ This is surprisingly easy in R with raster math!
 precip_change <- co_precip_2050 - co_precip_hist
 ```
 
-
-In addition to `ggplot`, you can very quickly view a basic map using R's base function `plot()`:
+In addition to `ggplot`, you can very quickly view a basic map using R's
+base function `plot()`:
 
 ```{r}
 plot(precip_change)
 ```
 
-
 ### Extract calculations
 
-The change map above is great to see the projected change in precipitation across the entire state, but say we wanted to know the exact projected change for all of our cities to compare amongst them.
+The change map above is great to see the projected change in
+precipitation across the entire state, but say we wanted to know the
+exact projected change for all of our cities to compare amongst them.
 
-We can get the raster values at each of our point locations using the `extract()` function from the `terra` package.
+We can get the raster values at each of our point locations using the
+`extract()` function from the `terra` package.
 
-Extract precipitation values at city locations using our `cities_sf` object created above:
+Extract precipitation values at city locations using our `cities_sf`
+object created above:
 
 ```{r}
 # Extract raster values at city points
 extracted_precip <- terra::extract(precip_change, cities_sf)
 ```
 
+Instead, add it as a new column to our spatial `cities_sf` data using
+`mutate()`:
 
-Instead, add it as a new column to our spatial `cities_sf` data using `mutate()`:
+*Note*: Make sure the column name you use with `$` matches the name
+returned from the `extract()` code we ran above.
 
-*Note*: Make sure the column name you use with `$` matches the name returned from the `extract()` code we ran above.
 ```{r}
 cities_precip <- cities_sf %>%
   mutate(precip_change = terra::extract(precip_change, cities_sf)$CO_2050_precip)
 ```
 
-Now, lets visualize which cities are projected to have the highest change in precipitation:
+Now, lets visualize which cities are projected to have the highest
+change in precipitation:
+
 ```{r}
 # Cities sized by change in precip
 ggplot() +
@@ -310,13 +363,24 @@ ggplot() +
 
 ### Zonal statistics
 
-Finally, what if we want to know the projected change in precipitation for each county? In this case, we cannot just extract a single value from a single point, but instead we need to summarize multiple values within an entire county. 
+Finally, what if we want to know the projected change in precipitation
+for each county? In this case, we cannot just extract a single value
+from a single point, but instead we need to summarize multiple values
+within an entire county.
 
-To summarize a raster within specified regions (polygons) we use what are called zonal statistics. In R, we can run zonal statistics using the `zonal()` function from the terra package.
+To summarize a raster within specified regions (polygons) we use what
+are called zonal statistics. In R, we can run zonal statistics using the
+`zonal()` function from the terra package.
 
-For this function, it also requires we change the format of our sf object above. We can easily do this inline using the `vect()` function from terra, which will convert the `sf` object to the required format called a "SpatVector" object.
+For this function, it also requires we change the format of our sf
+object above. We can easily do this inline using the `vect()` function
+from terra, which will convert the `sf` object to the required format
+called a "SpatVector" object.
 
-We use the `fun = "mean"` argument to calculate the mean of all values within each county. We also need to add `na.rm = TRUE` so that it ignores any raster cells that may be NA (most likely areas outside the state boundary).
+We use the `fun = "mean"` argument to calculate the mean of all values
+within each county. We also need to add `na.rm = TRUE` so that it
+ignores any raster cells that may be NA (most likely areas outside the
+state boundary).
 
 First, let's read in the county boundaries:
 
@@ -328,16 +392,21 @@ co_counties <- st_read("data/co_counties.shp")
 terra::zonal(precip_change, vect(co_counties), fun = "mean", na.rm = TRUE)
 ```
 
-Similar to how we did this with the cities data, we can use `mutate()` to add these calculated means directly to our `co_counties` spatial object as a new variable:
+Similar to how we did this with the cities data, we can use `mutate()`
+to add these calculated means directly to our `co_counties` spatial
+object as a new variable:
 
-*Note*: Make sure the column name you use with `$` matches the name returned from the `zonal()` code we ran above.
+*Note*: Make sure the column name you use with `$` matches the name
+returned from the `zonal()` code we ran above.
 
 ```{r}
 counties_precip <- co_counties %>% 
   mutate(precip_change = terra::zonal(precip_change, vect(co_counties), fun = "mean", na.rm = TRUE)$CO_2050_precip)
 ```
 
-Now we can make a map where counties are colored by their projected change in precipitation.
+Now we can make a map where counties are colored by their projected
+change in precipitation.
+
 ```{r}
 # Map showing all counties
 ggplot(counties_precip) +
@@ -347,14 +416,17 @@ ggplot(counties_precip) +
   theme_minimal()
 ```
 
+------------------------------------------------------------------------
 
----
+# Part 6: Interactive Mapping
 
-## Part 6: Interactive Mapping
+The most fun part of maps is being able to interact with them. To do so
+in R, we have to go beyond `ggplot2` and use a new package you installed
+earlier called `mapview`.
 
-The most fun part of maps is being able to interact with them. To do so in R, we have to go beyond `ggplot2` and use a new package you installed earlier called `mapview`.
-
-`mapview` makes interactive maps with a single function call — just pass in any spatial object and it handles the rest. It works with both `sf` vector objects and `terra` rasters.
+`mapview` makes interactive maps with a single function call — just pass
+in any spatial object and it handles the rest. It works with both `sf`
+vector objects and `terra` rasters.
 
 ### Map a raster
 
@@ -362,19 +434,26 @@ The most fun part of maps is being able to interact with them. To do so in R, we
 mapview(precip_change)
 ```
 
+To change the legend title use `layer.name =`
+
+```{r, eval = FALSE}
+mapview(precip_change, layer.name = "Change in Precip (mm)")
+```
+
 ### Map a vector layer
 
 ```{r, eval = FALSE}
-mapview(cities_precip, zcol = "precip_change")
+mapview(cities_precip, zcol = "precip_change", layer.name = "Change in Precip (mm)")
 ```
 
-The `zcol = ` argument tells `mapview` which column to use for coloring the points — similar to `aes(color = )` in ggplot.
+The `zcol =` argument tells `mapview` which column to use for coloring
+the points — similar to `aes(color = )` in ggplot.
 
 ### Combine multiple layers
 
 You can layer multiple spatial objects using `+`, just like ggplot:
 
 ```{r, eval = FALSE}
-mapview(precip_change) +
-  mapview(cities_precip, zcol = "precip_change")
+mapview(precip_change, layer.name = "Colorado Change in Precip (mm)") +
+  mapview(cities_precip, zcol = "precip_change", layer.name = "City Change in Precip (mm)")
 ```
