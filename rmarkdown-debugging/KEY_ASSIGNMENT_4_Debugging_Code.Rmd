@@ -7,36 +7,38 @@ output: word_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE)
-library(tidyverse)
 ```
 ## The Assignment:
 
 *Tip: View this in the visual editor in RStudio*
 
-You want to re-create the word document shared with this assignment titled `Debugged_Document.docx`. Below is the workflow to do so, ***however*** you will notice if you attempt to render this R Markdown document as is, it does NOT reproduce the `Debugged_Document.docx` file, and it won't even render until you fix some of the mistakes/missing elements. Therefore, this workflow is not reproducible! Your task is to fix the below coding workflow so that it renders and **exactly** matches the output of `Debugged_Document.docx` (*including* whether or not certain code chunks and/or outputs are shown).
+You want to re-create the word document shared with this assignment titled `Debugged_Document.docx`. Here is the workflow to do so, ***however*** you will notice if you attempt to render this R Markdown document as is, it does NOT reproduce the `Debugged_Document.docx` file, and it won't even render until you fix some of the mistakes/missing elements. Therefore, this workflow is not reproducible! Your task is to fix the below coding workflow so that it renders and **exactly** matches the output of `Debugged_Document.docx` (*including* whether or not certain code chunks and/or outputs are shown).
 
-There are a total of **5 fixes** you need to make to the workflow below. To complete this assignment you must identify the 5 errors and specify what they are.
+There are a total of **6 fixes** you need to make to the workflow below. To complete this assignment you must identify the 6 errors and specify what they are.
 
-**List here the 5 errors you had to fix in this workflow:**
+**List here the 6 errors you had to fix in this workflow:**
 
 1.  Set `echo = FALSE` to remove the display of code
 
 2.  Load in the {tidyverse}
 
-3.  In the pressure vs. wind speed plot, you needed to add the color argument to `geom_point(aes(x = pressure, y = wind, color = lat), alpha = 0.75, cex = 3)`
+3. In the histogram, `labs(color = "Storm Type")` needs to be fixed to `labs(fill = "Storm Type")`.
 
-4.  In the hurricane's maximum diameter vs. time data frame, `hurricanes` is spelled wrong.
+4.  In the pressure vs. wind speed plot, you needed to add the color argument to `geom_point(aes(x = pressure, y = wind, color = lat), alpha = 0.75, cex = 3)`
 
-5.  ... and, the `hurricanes` object needs to be created to make the final plot
+5.  In the hurricane's maximum diameter vs. time data frame, `hurricanes` is spelled wrong.
+
+6.  ... and, the `hurricanes` object needs to be created to make the final plot
 
 #### The NOAA Atlantic Hurricane Dataset
 
-This exploratory workflow uses the `atlantic_storms.csv` file in the data folder for this lesson. This dataset is based on the NOAA Atlantic hurricane database (<https://www.nhc.noaa.gov/data/#hurdat>). The data includes storm tracks of storms from 1975-2021, as well as some characteristics (like wind and air pressure) during their progression. Storms from 1979 onward are measured every six hours during the lifetime of the storm. Storms in earlier years have some missing data. Descriptions of each variable in the dataset can be found in `data/atlantic_storms_desc.txt`.
+This exploratory workflow uses the `storms` data from the {dplyr} package. This dataset is based on the NOAA Atlantic hurricane database (<https://www.nhc.noaa.gov/data/#hurdat>). The data includes storm tracks of storms from 1975-2022, as well as some characteristics (like wind and air pressure) during their progression. Storms from 1979 onward are measured every six hours during the lifetime of the storm. Storms in earlier years have some missing data. Descriptions of each variable in the dataset can be found with `?storms`.
 
 We read in the data and initially explore its structure:
 
 ```{r}
-storms <- read_csv("data/atlantic_storms.csv")
+library(tidyverse)
+data(storms)
 summary(storms)
 ```
 
@@ -47,7 +49,7 @@ storms %>%
   ggplot()+
   geom_histogram(aes(x = wind, fill = status)) +
   theme_minimal() +
-  labs(color = "Storm Type") + 
+  labs(fill = "Storm Type") + 
   ylab("Count") +
   xlab("Sustained Wind Speed (knots)") 
 ```
@@ -60,7 +62,7 @@ storms %>%
   geom_point(aes(x = pressure, y = wind, color = lat), alpha = 0.75, cex = 3) +
   scale_color_gradientn(colors = c( "red", "green", "darkblue")) +
   theme_minimal() +
-  labs(fill = "Latitude") + 
+  labs(color = "Latitude") + 
   xlab("Pressure (millibars)") +
   ylab("Sustained Wind Speed (knots)") 
 ```
@@ -81,5 +83,6 @@ hurricanes %>%
   geom_boxplot(aes(x = as.factor(year), y = max_force_diameter), color = "darkblue", fill = "skyblue") +
   theme_minimal() +
   xlab("Year") +
-  ylab("Maximum Diameter (nautical miles)")
+  ylab("Maximum Diameter (nautical miles)") +
+  theme(axis.text.x = element_text(angle = 45)) 
 ```
